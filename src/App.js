@@ -1,25 +1,64 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react';
+import { v4 } from 'uuid';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import Container from './components/Container';
+import ContactForm from './components/ContactForm';
+import ContactsList from './components/ContactsList';
+import Filter from './components/Filter';
+
+class App extends Component {
+  state = {
+    contacts: [],
+    filter: '',
+  };
+  handlerFormSubmit = ({ name, number }) => {
+    const contact = {
+      id: v4(),
+      name,
+      number,
+    };
+
+    const { contacts } = this.state;
+
+    if (
+      contacts.find(
+        ({ name }) => name.toLowerCase() === contact.name.toLowerCase(),
+      )
+    ) {
+      alert(`${name} is already in contacts`);
+    } else {
+      this.setState(({ contacts }) => ({
+        contacts: [contact, ...contacts],
+      }));
+    }
+  };
+  changeFilter = e => {
+    this.setState({ filter: e.currentTarget.value });
+  };
+  deleteContact = contactId => {
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
+    }));
+  };
+  render() {
+    const normalizedFilter = this.state.filter.toLowerCase();
+
+    const visibleContacts = this.state.contacts.filter(contact =>
+      contact.name.toLowerCase().includes(normalizedFilter),
+    );
+    return (
+      <Container>
+        <h1>Phonebook</h1>
+        <ContactForm onSubmit={this.handlerFormSubmit} />
+        <h2>Contacts</h2>
+        <Filter value={this.state.filter} onChange={this.changeFilter} />
+        <ContactsList
+          contacts={visibleContacts}
+          onDelete={this.deleteContact}
+        />
+      </Container>
+    );
+  }
 }
 
 export default App;
